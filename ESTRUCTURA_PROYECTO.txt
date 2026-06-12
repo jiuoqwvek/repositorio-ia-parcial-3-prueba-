@@ -1,0 +1,253 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║   AGENTE INTELIGENTE DEL METRO DE SANTIAGO - EP3                          ║
+║   Estructura Completa del Proyecto                                         ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📦 EVA3_Ing_Sol_IA/
+│
+├── 🐍 ARCHIVOS PYTHON (CORE)
+│   ├── agente_metro.py ..................... Core del agente LangChain
+│   ├── dashboard.py ........................ Dashboard de Streamlit
+│   ├── config_logging.py .................. Configuración de logging
+│   ├── ejemplos.py ........................ Scripts de prueba y demo
+│   │
+│   └── Estructura de agente_metro.py:
+│       ├── MonitoreoAgenteCallback ........ Callback para IE1-IE4
+│       ├── Herramientas:
+│       │   ├── consultar_tarifa()
+│       │   ├── consultar_ruta()
+│       │   ├── consultar_impedimentos() .. ⭐ NUEVA (IE2)
+│       │   ├── enviar_correo()
+│       │   └── razonar_viaje()
+│       ├── MemoriaCompuesta .............. IE3 (Corto + Largo plazo)
+│       └── AgenteMetroSantiago ........... Agente principal
+│
+├── 🐳 DOCKER & ORQUESTACIÓN
+│   ├── Dockerfile ......................... Imagen Docker
+│   ├── docker-compose.yml ................. Orquestación completa
+│   └── .env.example ....................... Variables de entorno (plantilla)
+│
+├── 📋 CONFIGURACIÓN & SCRIPTS
+│   ├── requirements.txt ................... Dependencias Python
+│   ├── setup.sh ........................... Script Linux/Mac
+│   ├── setup.bat .......................... Script Windows
+│   ├── .gitignore ......................... Archivos a ignorar en Git
+│   │
+│   └── Comandos rápidos:
+│       ├── setup.sh install .............. (Linux/Mac)
+│       ├── setup.bat install ............. (Windows)
+│       ├── setup.sh agent ................ Ejecutar agente
+│       ├── setup.bat agent ............... Ejecutar agente
+│       ├── setup.sh dashboard ............ Ejecutar dashboard
+│       └── setup.bat dashboard ........... Ejecutar dashboard
+│
+├── 📚 DOCUMENTACIÓN
+│   ├── README.md .......................... Documentación completa
+│   ├── GUÍA_RÁPIDA.md ..................... Guía rápida (5 min)
+│   └── ESTRUCTURA_PROYECTO.txt ........... Este archivo
+│
+├── 📁 CARPETAS GENERADAS (Automático)
+│   ├── logs/ .............................. Archivos de monitoreo
+│   │   ├── agent_logs.jsonl .............. Datos de ejecución (IE1-IE4)
+│   │   ├── agente_metro.log .............. Log general
+│   │   ├── agente_metro_errors.log ....... Solo errores
+│   │   └── viaje_*.eml ................... Correos guardados
+│   │
+│   ├── vector_db/ ......................... Base de datos vectorial
+│   │   ├── index.faiss ................... Índice FAISS
+│   │   └── index.pkl ..................... Metadata
+│   │
+│   ├── venv/ (si está en local) .......... Entorno virtual Python
+│   │   └── [Paquetes Python]
+│   │
+│   └── __pycache__/ ....................... Caché Python (ignorar)
+│
+├── 🔧 DEPENDENCIAS PRINCIPALES
+│   ├── langchain .......................... Framework de IA
+│   ├── openai ............................ API de OpenAI (GPT-4o)
+│   ├── streamlit ......................... Framework web
+│   ├── pandas ............................. Análisis de datos
+│   ├── plotly ............................ Gráficos interactivos
+│   ├── psutil ............................ Monitoreo de recursos
+│   ├── faiss ............................. BD vectorial (embeddings)
+│   └── python-dotenv ..................... Variables de entorno
+│
+│
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          REQUISITOS CUMPLIDOS (EP3)                       ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+✅ HERRAMIENTAS (5 requeridas)
+   ✓ consultar_tarifa(hora)
+   ✓ consultar_ruta(origen, destino)
+   ✓ consultar_impedimentos() ............... ⭐ NUEVA
+   ✓ enviar_correo(destinatario, asunto, cuerpo)
+   ✓ razonar_viaje(pregunta)
+
+✅ MEMORIA COMPUESTA
+   ✓ Corto Plazo: ConversationBufferMemory
+   ✓ Largo Plazo: Vector DB (FAISS con embeddings)
+
+✅ OBSERVABILIDAD Y TRAZABILIDAD (IE1, IE2, IE3, IE4)
+   ✓ IE1: BaseCallbackHandler personalizado (MonitoreoAgenteCallback)
+   ✓ IE2: Timestamp de cada ejecución
+   ✓ IE3: Nombre de herramienta usada
+   ✓ IE4: Latencia (segundos) + RAM (MB) + Errores
+   ✓ Archivo de logs: logs/agent_logs.jsonl (formato JSONL)
+
+✅ DASHBOARD DE MONITOREO (IE5)
+   ✓ Streamlit en puerto 8501
+   ✓ Gráficos de latencia (línea, distribución)
+   ✓ Gráficos de errores (barras, timeline)
+   ✓ Gráficos de recursos (RAM en tiempo real)
+   ✓ Tabla filtrable de datos
+   ✓ Exportar CSV/JSON
+
+✅ SEGURIDAD Y ÉTICA (IE6)
+   ✓ System Prompt con Guardrails
+   ✓ Detecta: RUT, contraseñas, tarjetas de crédito
+   ✓ Ignora datos sensibles automáticamente
+   ✓ Advierte sobre privacidad
+   ✓ Respuestas respetuosas e inclusivas
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                           FLUJO DE EJECUCIÓN                              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+1️⃣  USUARIO
+    ↓ (Escribe consulta)
+    
+2️⃣  AGENTE (agente_metro.py)
+    ├─ Valida datos sensibles (Guardrail - IE6)
+    ├─ Procesa consulta con LLM
+    ├─ Selecciona herramienta apropiada
+    │  └─ CALLBACK MONITOREO INICIA (IE1-IE4)
+    │     ├─ Registra timestamp
+    │     ├─ Mide latencia
+    │     ├─ Captura RAM usada
+    │     └─ Detecta errores
+    ├─ Ejecuta herramienta
+    │  └─ CALLBACK MONITOREO FINALIZA
+    │     └─ Escribe logs/agent_logs.jsonl
+    └─ Retorna respuesta a usuario
+    
+3️⃣  MEMORIA (MemoriaCompuesta)
+    ├─ Corto Plazo: Almacena conversación actual
+    └─ Largo Plazo: Agrega resumen a FAISS (vector_db/)
+    
+4️⃣  DASHBOARD (dashboard.py)
+    ├─ Lee logs/agent_logs.jsonl
+    ├─ Genera gráficos Plotly
+    └─ Muestra en Streamlit (http://localhost:8501)
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                        ARCHIVOS DE LOGS GENERADOS                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📊 logs/agent_logs.jsonl
+   Formato: Una línea JSON por ejecución
+   Contenido:
+   {
+     "timestamp": "2024-06-12T15:30:45.123456",
+     "tool_name": "consultar_ruta",
+     "latency_seconds": 0.3456,
+     "memory_usage_mb": 2.45,
+     "current_memory_mb": 125.67,
+     "error": null,
+     "output_length": 245
+   }
+
+📝 logs/agente_metro.log
+   Formato: Log tradicional con detalles completos
+   Contiene: DEBUG, INFO, WARNING, ERROR
+
+❌ logs/agente_metro_errors.log
+   Solo errores y excepciones críticas
+
+📧 logs/viaje_*.eml
+   Correos guardados (si falla SMTP)
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          INICIO RÁPIDO (3 PASOS)                          ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+Windows:
+  1. setup.bat install
+  2. setup.bat agent        (Terminal 1)
+  3. setup.bat dashboard    (Terminal 2)
+
+Linux/Mac:
+  1. ./setup.sh install
+  2. ./setup.sh agent       (Terminal 1)
+  3. ./setup.sh dashboard   (Terminal 2)
+
+Docker:
+  1. docker-compose up --build
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                        COMANDOS ÚTILES ADICIONALES                        ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+Pruebas:
+  python ejemplos.py verificar
+  python ejemplos.py pruebas
+  python ejemplos.py demo
+
+Docker:
+  docker-compose up -d          # Background
+  docker-compose logs -f        # Ver logs
+  docker-compose down           # Detener
+
+Limpiar:
+  setup.sh clean    (Linux/Mac)
+  setup.bat clean   (Windows)
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                      NOTAS IMPORTANTES PARA LA ENTREGA                    ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+✓ Todos los archivos están en: /mnt/c/Users/rena4/Downloads/EVA3_Ing_Sol_IA/
+
+✓ Agregar a GIT (si aplica):
+  git add .
+  git commit -m "EP3: Agente Inteligente Metro Santiago"
+  git push
+
+✓ Crear archivo .env (desde .env.example):
+  - NUNCA subir .env a GitHub
+  - Solo subir .env.example como plantilla
+
+✓ Dependencias verificadas (todos los requisitos):
+  ✓ 5 herramientas funcionales
+  ✓ Memoria compuesta implementada
+  ✓ Monitoreo completo (IE1-IE4)
+  ✓ Dashboard funcional (IE5)
+  ✓ Guardrails de seguridad (IE6)
+
+✓ Testing:
+  - Ejecutar: python agente_metro.py
+  - Probar al menos 3 consultas diferentes
+  - Abrir dashboard en http://localhost:8501
+  - Verificar que logs/agent_logs.jsonl se llena
+
+✓ Documentación incluida:
+  - README.md: Documentación completa
+  - GUÍA_RÁPIDA.md: Inicio en 5 minutos
+  - ESTRUCTURA_PROYECTO.txt: Este archivo
+  - Comentarios en código
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                            FIN DEL DOCUMENTO                              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+¡Proyecto completado y listo para entrega!
+Para soporte o preguntas, revisa README.md o contacta a tu profesor.
+
