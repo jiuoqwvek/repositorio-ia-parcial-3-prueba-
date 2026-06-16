@@ -7,8 +7,10 @@ __pycache__/
 *$py.class
 
 # Environment files
+# Keep local .env excluded, but allow committing .env.example templates
 .env
 .env.*
+.env.example
 
 # Logs
 logs/
