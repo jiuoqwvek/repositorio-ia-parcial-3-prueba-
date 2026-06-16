@@ -11,37 +11,67 @@ echo "[bootstrap] Repo: $REPO_URL"
 echo "[bootstrap] Branch: $BRANCH"
 echo "[bootstrap] Target dir: $TARGET_DIR"
 
+# Determine invoking user and home so the repo ends up in ~/app for that user
+if [ -n "${SUDO_USER:-}" ]; then
+  INVOKING_USER="$SUDO_USER"
+else
+  INVOKING_USER="$(whoami)"
+fi
+INVOKING_HOME=$(eval echo "~$INVOKING_USER")
+
+# Use $HOME of the invoking user if TARGET_DIR not provided
+TARGET_DIR="${TARGET_DIR:-$INVOKING_HOME/app}"
+
+# Helper to run commands as root when necessary
 if [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root or with sudo. Re-run with sudo." >&2
-  exit 1
+  SUDO_CMD="sudo"
+else
+  SUDO_CMD=""
 fi
 
 echo "[bootstrap] Installing prerequisites..."
 
 # Detect package manager and install git + docker
 if command -v dnf >/dev/null 2>&1; then
-  dnf update -y
-  dnf install -y git docker
+  $SUDO_CMD dnf update -y
+  $SUDO_CMD dnf install -y git docker
 elif command -v apt-get >/dev/null 2>&1; then
-  apt-get update -y
-  apt-get install -y git docker.io curl
+  $SUDO_CMD apt-get update -y
+  $SUDO_CMD apt-get install -y git docker.io curl
 else
   echo "No supported package manager found (dnf/apt-get). Install git and docker manually." >&2
 fi
 
 echo "[bootstrap] Starting Docker..."
-systemctl enable docker
-systemctl start docker
+$SUDO_CMD systemctl enable docker
+$SUDO_CMD systemctl start docker
 
 echo "[bootstrap] Preparing application directory..."
+echo "[bootstrap] Preparing application directory: $TARGET_DIR"
 if [ -d "$TARGET_DIR" ]; then
   echo "[bootstrap] Target exists, pulling latest..."
-  git -C "$TARGET_DIR" fetch --all --prune
-  git -C "$TARGET_DIR" checkout "$BRANCH"
-  git -C "$TARGET_DIR" pull origin "$BRANCH"
+  # Ensure ownership so pulls work without sudo for the invoking user
+  $SUDO_CMD chown -R "$INVOKING_USER":"$INVOKING_USER" "$TARGET_DIR" || true
+  if [ "$INVOKING_USER" = "$(whoami)" ]; then
+    git -C "$TARGET_DIR" fetch --all --prune
+    git -C "$TARGET_DIR" checkout "$BRANCH"
+    git -C "$TARGET_DIR" pull origin "$BRANCH"
+  else
+    sudo -u "$INVOKING_USER" git -C "$TARGET_DIR" fetch --all --prune
+    sudo -u "$INVOKING_USER" git -C "$TARGET_DIR" checkout "$BRANCH"
+    sudo -u "$INVOKING_USER" git -C "$TARGET_DIR" pull origin "$BRANCH"
+  fi
 else
-  git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TARGET_DIR"
+  # Ensure parent exists and is writable by the invoking user
+  PARENT_DIR=$(dirname "$TARGET_DIR")
+  $SUDO_CMD mkdir -p "$PARENT_DIR"
+  $SUDO_CMD chown "$INVOKING_USER":"$INVOKING_USER" "$PARENT_DIR"
+  # Clone as invoking user so the files are owned correctly
+  sudo -u "$INVOKING_USER" git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TARGET_DIR"
 fi
+
+# Ensure the target directory is owned by the invoking user
+$SUDO_CMD chown -R "$INVOKING_USER":"$INVOKING_USER" "$TARGET_DIR" || true
 
 cd "$TARGET_DIR"
 
