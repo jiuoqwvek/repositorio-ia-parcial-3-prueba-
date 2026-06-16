@@ -2,9 +2,10 @@
 
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/jiuoqwvek/Repo_prueba.git}"
+REPO_URL="${REPO_URL:-https://github.com/Rena41615/EVA3-Ing-Sol-IA.git}"
 BRANCH="${BRANCH:-main}"
-TARGET_DIR="${TARGET_DIR:-/opt/ai-agent}"
+# Default target dir: /home/ec2-user/app so user can `cd ~/app/deploy` like in the guide
+TARGET_DIR="${TARGET_DIR:-/home/ec2-user/app}"
 
 echo "[bootstrap] Repo: $REPO_URL"
 echo "[bootstrap] Branch: $BRANCH"
@@ -57,12 +58,21 @@ echo "[bootstrap] Checking Docker..."
 
 docker --version
 
-if docker compose version >/dev/null 2>&1; then
-    echo "[bootstrap] Building and starting services..."
-    docker compose up -d --build
-elif command -v docker-compose >/dev/null 2>&1; then
+    if docker compose version >/dev/null 2>&1; then
+        echo "[bootstrap] Building and starting services..."
+        # Prefer a production compose file under deploy/ if present
+        if [ -f ./deploy/docker-compose.prod.yml ]; then
+            docker compose -f ./deploy/docker-compose.prod.yml up -d --build
+        else
+            docker compose up -d --build
+        fi
+    elif command -v docker-compose >/dev/null 2>&1; then
     echo "[bootstrap] Building and starting services with docker-compose..."
-    docker-compose up -d --build
+    if [ -f ./deploy/docker-compose.prod.yml ]; then
+        docker-compose -f ./deploy/docker-compose.prod.yml up -d --build
+    else
+        docker-compose up -d --build
+    fi
 else
     echo "[ERROR] Docker Compose is not installed. Trying fallback: ./deploy/setup.sh"
     if [ -x ./deploy/setup.sh ]; then

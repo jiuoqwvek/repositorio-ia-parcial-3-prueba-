@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel
 from typing import Any, List
 import json
@@ -33,6 +33,8 @@ def startup_event():
     # Inicializa el agente una vez
     app.state.agente = AgenteMetroSantiago()
     app.state._in_memory_logs = []  # cache conveniente
+    # Rate limiter state: map ip -> list of epoch timestamps (seconds)
+    app.state._rate_limits = {}
     # Lanzar tarea de background que monitorea métricas y emite alertas
     loop = asyncio.get_event_loop()
     app.state._alert_task = loop.create_task(_monitor_metrics_and_alert())
@@ -132,6 +134,67 @@ def api_query(q: Query):
                 agente.callback.current_request_id = None
         except Exception:
             pass
+
+
+def _is_injection_attack(text: str) -> bool:
+    """Detecta patrones simples de 'ignore previous instructions' injection."""
+    if not text:
+        return False
+    s = text.lower()
+    suspicious = [
+        "ignora las instrucciones anteriores",
+        "ignore the previous",
+        "ignore previous",
+        "ignore all previous",
+        "ignora instrucciones",
+        "ignore instructions",
+    ]
+    return any(p in s for p in suspicious)
+
+
+def _is_rate_limited(client_ip: str, limit: int = 20, per_seconds: int = 60) -> bool:
+    """Simple in-memory rate limiter. Returns True if the IP exceeded the limit."""
+    import time
+
+    now = int(time.time())
+    buckets = app.state._rate_limits.setdefault(client_ip, [])
+    # prune old
+    while buckets and buckets[0] <= now - per_seconds:
+        buckets.pop(0)
+    if len(buckets) >= limit:
+        return True
+    buckets.append(now)
+    return False
+
+
+class ChatMessage(BaseModel):
+    mensaje: str
+
+
+@app.post("/api/chat")
+def api_chat(msg: ChatMessage, request: Request):
+    """Compatibilidad: endpoint /api/chat usado en las instrucciones de despliegue.
+    Añade mitigación básica contra inyección y rate limiting por IP.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+
+    # Rate limiting
+    if _is_rate_limited(client_ip):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded")
+
+    # Simple injection mitigation
+    if _is_injection_attack(msg.mensaje):
+        logger.warning(f"Injection attempt blocked from {client_ip}: {msg.mensaje}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mensaje bloqueado por política de seguridad")
+
+    # Reuse existing query processing flow
+    q = Query(query=msg.mensaje)
+    return api_query(q)
+
+
+@app.get("/api/health")
+def api_health():
+    return {"status": "ok"}
 
 @app.get("/api/logs")
 def api_logs(limit: int = 100):
