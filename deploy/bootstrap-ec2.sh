@@ -84,6 +84,27 @@ if [ -f .env.example ] && [ ! -f .env ]; then
   cp .env.example .env || true
 fi
 
+# Ensure .env contains required keys (SITE_ADDRESS, GITHUB_TOKEN, OPENAI_API_KEY)
+ensure_key() {
+  FILE="$1"
+  KEY="$2"
+  if [ -f "$FILE" ]; then
+    if ! grep -qE "^${KEY}=" "$FILE"; then
+      echo "${KEY}=" >> "$FILE"
+      echo "[bootstrap] Added ${KEY} to ${FILE}"
+    fi
+  else
+    echo "${KEY}=" > "$FILE"
+    echo "[bootstrap] Created ${FILE} with ${KEY}"
+  fi
+}
+
+ensure_key ".env" "SITE_ADDRESS"
+ensure_key ".env" "GITHUB_TOKEN"
+ensure_key ".env" "OPENAI_API_KEY"
+ensure_key "backend/.env" "SITE_ADDRESS"
+ensure_key "backend/.env" "OPENAI_API_KEY"
+
 echo "[bootstrap] Checking Docker..."
 
 docker --version
