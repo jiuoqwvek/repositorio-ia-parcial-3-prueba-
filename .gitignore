@@ -10,7 +10,9 @@ __pycache__/
 # Keep local .env excluded, but allow committing .env.example templates
 .env
 .env.*
+# allow deploy .env.example
 .env.example
+deploy/.env.example
 
 # Logs
 logs/
