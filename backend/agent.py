@@ -3,6 +3,8 @@ import json
 import time
 import psutil
 import logging
+import re
+from uuid import uuid4
 from datetime import datetime
 from typing import Any, List, Dict, Optional
 from pathlib import Path
@@ -52,11 +54,19 @@ class MonitoreoAgenteCallback(BaseCallbackHandler):
         self.tool_start_time = None
         self.process = psutil.Process(os.getpid())
         self.initial_memory = self.process.memory_info().rss / 1024 / 1024  # MB
+        # Identificadores para correlación de logs / trazabilidad
+        self.current_request_id: Optional[str] = None
+        self.current_span_id: Optional[str] = None
         
     def on_tool_start(self, serialized: Dict[str, Any], input_str: str, **kwargs):
         """Llamado cuando comienza la ejecución de una herramienta."""
         self.tool_start_time = time.time()
         self.tool_name = serialized.get("name", "unknown")
+        # Crear un nuevo span id (traza ligera) por ejecución de herramienta
+        try:
+            self.current_span_id = str(uuid4())
+        except Exception:
+            self.current_span_id = None
         logger.info(f"Iniciando herramienta: {self.tool_name}")
     
     def on_tool_end(self, output: str, **kwargs):
@@ -75,11 +85,36 @@ class MonitoreoAgenteCallback(BaseCallbackHandler):
                 "error": None,
                 "output_length": len(str(output))
             }
+            # Correlación y trazabilidad
+            if getattr(self, "current_request_id", None):
+                log_entry["request_id"] = self.current_request_id
+            if getattr(self, "current_span_id", None):
+                log_entry["trace_id"] = self.current_span_id
+
+            # No almacenar contenido sensible: solo longitudes y metadatos
             
             # Registrar en archivo JSONL
             try:
-                with open(LOGS_FILE, "a") as f:
-                    f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+                # Redactar campos sensibles si existieran (defensa en profundidad)
+                def _redact_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+                    # Convertir a string los valores y aplicar redacción simple
+                    new = {}
+                    for k, v in d.items():
+                        try:
+                            s = json.dumps(v, ensure_ascii=False)
+                        except Exception:
+                            s = str(v)
+                        # Sustituir correos y números largos
+                        s = _redact_pii(s)
+                        try:
+                            new[k] = json.loads(s)
+                        except Exception:
+                            new[k] = s
+                    return new
+
+                redacted = _redact_dict(log_entry)
+                with open(LOGS_FILE, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(redacted, ensure_ascii=False) + "\n")
                 logger.info(f"Herramienta {self.tool_name} completada en {latency:.4f}s, RAM: {memory_usage:.2f}MB")
             except Exception as e:
                 logger.error(f"Error al registrar log: {e}")
@@ -98,13 +133,41 @@ class MonitoreoAgenteCallback(BaseCallbackHandler):
             "error": str(error),
             "error_type": type(error).__name__
         }
-        
+        # Correlación
+        if getattr(self, "current_request_id", None):
+            log_entry["request_id"] = self.current_request_id
+        if getattr(self, "current_span_id", None):
+            log_entry["trace_id"] = self.current_span_id
+
+        # Redactar error antes de persistir
+        log_entry["error"] = _redact_pii(log_entry.get("error", ""))
         try:
-            with open(LOGS_FILE, "a") as f:
+            with open(LOGS_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
             logger.error(f"Error en herramienta {self.tool_name}: {error}")
         except Exception as e:
             logger.error(f"Error al registrar log de error: {e}")
+
+
+# -------------------------
+# PII REDACTION UTIL
+# -------------------------
+def _redact_pii(text: str) -> str:
+    """Aplica redacción simple sobre emails, números largos y patrones comunes.
+    Conservadora: sustituye por etiquetas para evitar almacenar PII en logs.
+    """
+    try:
+        # emails
+        text = re.sub(r"[\w\.-]+@[\w\.-]+", "[REDACTED_EMAIL]", text)
+        # tarjetas / secuencias largas de dígitos (13-19)
+        text = re.sub(r"\b\d{13,19}\b", "[REDACTED_ID]", text)
+        # secuencias largas de dígitos (>=6) - por si hay RUT u otros
+        text = re.sub(r"\b\d{6,}\b", "[REDACTED_ID]", text)
+        # RUT con guion y dv (ej: 12.345.678-9)
+        text = re.sub(r"\b\d{1,3}(?:\.\d{3})*-\w\b", "[REDACTED_ID]", text)
+        return text
+    except Exception:
+        return text
 
 # ============================================================================
 # DEFINICIÓN DE HERRAMIENTAS

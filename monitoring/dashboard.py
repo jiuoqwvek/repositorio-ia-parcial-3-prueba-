@@ -59,7 +59,7 @@ def cargar_logs():
     logs_path = Path("./logs/agent_logs.jsonl")
     
     if not logs_path.exists():
-        st.warning("No se encontró el archivo de logs. Ejecuta primero agente_metro.py")
+        st.warning("No se encontró el archivo de logs. Ejecuta primero backend/agent.py")
         return pd.DataFrame()
     
     try:
@@ -87,6 +87,9 @@ def obtener_estadisticas(df):
             "total_herramientas": 0,
             "latencia_promedio": 0,
             "latencia_max": 0,
+            "latencia_p50": 0,
+            "latencia_p95": 0,
+            "latencia_p99": 0,
             "uso_ram_promedio": 0,
             "total_errores": 0,
             "tasa_error": 0
@@ -96,6 +99,10 @@ def obtener_estadisticas(df):
         "total_herramientas": len(df),
         "latencia_promedio": df["latency_seconds"].mean() if "latency_seconds" in df.columns else 0,
         "latencia_max": df["latency_seconds"].max() if "latency_seconds" in df.columns else 0,
+        # Percentiles útiles para SLOs
+        "latencia_p50": df["latency_seconds"].quantile(0.50) if "latency_seconds" in df.columns else 0,
+        "latencia_p95": df["latency_seconds"].quantile(0.95) if "latency_seconds" in df.columns else 0,
+        "latencia_p99": df["latency_seconds"].quantile(0.99) if "latency_seconds" in df.columns else 0,
         "uso_ram_promedio": df["memory_usage_mb"].mean() if "memory_usage_mb" in df.columns else 0,
         "total_errores": df["error"].notna().sum(),
         "tasa_error": (df["error"].notna().sum() / len(df) * 100) if len(df) > 0 else 0
@@ -113,11 +120,11 @@ st.markdown("Análisis de Métricas, Trazabilidad y Rendimiento del Agente")
 # Cargar datos
 df = cargar_logs()
 
-if df.empty:
-    st.info("📊 En espera de datos. Ejecuta el agente con: `python agente_metro.py`")
-else:
-    # Obtener estadísticas
-    stats = obtener_estadisticas(df)
+    if df.empty:
+        st.info("📊 En espera de datos. Ejecuta el agente con: `python backend/agent.py`")
+    else:
+        # Obtener estadísticas
+        stats = obtener_estadisticas(df)
     
     # ====================================================================
     # SECCIÓN 1: MÉTRICAS PRINCIPALES
@@ -125,50 +132,65 @@ else:
     
     st.markdown("## 📊 Métricas Principales")
     
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    
-    with col1:
-        st.metric(
-            label="Total de Operaciones",
-            value=stats["total_herramientas"],
-            delta=None
-        )
-    
-    with col2:
-        st.metric(
-            label="Latencia Promedio (s)",
-            value=f"{stats['latencia_promedio']:.4f}",
-            delta=None
-        )
-    
-    with col3:
-        st.metric(
-            label="Latencia Máxima (s)",
-            value=f"{stats['latencia_max']:.4f}",
-            delta=None
-        )
-    
-    with col4:
-        st.metric(
-            label="RAM Promedio (MB)",
-            value=f"{stats['uso_ram_promedio']:.2f}",
-            delta=None
-        )
-    
-    with col5:
-        st.metric(
-            label="Total de Errores",
-            value=int(stats["total_errores"]),
-            delta=None
-        )
-    
-    with col6:
-        st.metric(
-            label="Tasa de Error",
-            value=f"{stats['tasa_error']:.1f}%",
-            delta=None,
-            delta_color="inverse"
-        )
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        
+        with col1:
+            st.metric(
+                label="Total de Operaciones",
+                value=stats["total_herramientas"],
+                delta=None
+            )
+        
+        with col2:
+            st.metric(
+                label="Latencia Promedio (s)",
+                value=f"{stats['latencia_promedio']:.4f}",
+                delta=None
+            )
+        
+        with col3:
+            st.metric(
+                label="Latencia Máxima (s)",
+                value=f"{stats['latencia_max']:.4f}",
+                delta=None
+            )
+
+        with col4:
+            st.metric(
+                label="p95 Latencia (s)",
+                value=f"{stats.get('latencia_p95', 0):.4f}",
+                delta=None
+            )
+
+        with col5:
+            st.metric(
+                label="p99 Latencia (s)",
+                value=f"{stats.get('latencia_p99', 0):.4f}",
+                delta=None
+            )
+
+        with col6:
+            st.metric(
+                label="RAM Promedio (MB)",
+                value=f"{stats['uso_ram_promedio']:.2f}",
+                delta=None
+            )
+
+        # Segunda fila: errores
+        err_col1, err_col2 = st.columns([1, 1])
+        with err_col1:
+            st.metric(
+                label="Total de Errores",
+                value=int(stats["total_errores"]),
+                delta=None
+            )
+        with err_col2:
+            st.metric(
+                label="Tasa de Error",
+                value=f"{stats['tasa_error']:.1f}%",
+                delta=None,
+                delta_color="inverse"
+            )
     
     # ====================================================================
     # SECCIÓN 2: GRÁFICOS DE LATENCIA

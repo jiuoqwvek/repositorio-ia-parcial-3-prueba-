@@ -181,7 +181,7 @@ python ejemplos.py verificar
 
 | Archivo | Función |
 |---------|---------|
-| `agente_metro.py` | Core del agente (NO modificar para empezar) |
+| `backend/agent.py` | Core del agente (NO modificar para empezar) |
 | `dashboard.py` | Dashboard Streamlit (NO modificar) |
 | `.env` | Tu configuración (EDITA SOLO ESTO) |
 | `logs/agent_logs.jsonl` | Datos que genera el agente (automático) |
@@ -194,7 +194,7 @@ python ejemplos.py verificar
 
 1. Lee el README.md completo
 2. Ejecuta: `python ejemplos.py verificar`
-3. Revisa `logs/agente_metro.log`
+3. Revisa `logs/agent_logs.jsonl` (JSONL) y `logs/agente_metro.log`
 
 ---
 

@@ -58,7 +58,7 @@ def ejecutar_pruebas():
     Útil para validar que el agente funciona correctamente.
     """
     
-    from agente_metro import AgenteMetroSantiago
+    from backend.agent import AgenteMetroSantiago
     import time
     
     print("\n" + "="*70)
@@ -172,7 +172,7 @@ def verificar_instalacion():
     if todas_ok:
         print("✓ Todas las dependencias están instaladas")
         print("\nPuedes ejecutar:")
-        print("  - python agente_metro.py (Agente interactivo)")
+        print("  - python backend/agent.py (Agente interactivo)")
         print("  - streamlit run dashboard.py (Dashboard)")
         print("  - python -c 'from ejemplos import ejecutar_pruebas; ejecutar_pruebas()' (Pruebas)")
     else:
@@ -191,7 +191,7 @@ def demo_interactiva():
     Ejecuta una demostración interactiva con ejemplos predefinidos.
     """
     
-    from agente_metro import AgenteMetroSantiago
+    from backend.agent import AgenteMetroSantiago
     
     print("\n" + "="*70)
     print("DEMOSTRACIÓN INTERACTIVA")

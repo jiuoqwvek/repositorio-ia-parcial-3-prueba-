@@ -8,12 +8,12 @@
 📦 EVA3_Ing_Sol_IA/
 │
 ├── 🐍 ARCHIVOS PYTHON (CORE)
-│   ├── agente_metro.py ..................... Core del agente LangChain
+│   ├── backend/agent.py ..................... Core del agente LangChain
 │   ├── dashboard.py ........................ Dashboard de Streamlit
 │   ├── config_logging.py .................. Configuración de logging
 │   ├── ejemplos.py ........................ Scripts de prueba y demo
 │   │
-│   └── Estructura de agente_metro.py:
+│   └── Estructura de backend/agent.py:
 │       ├── MonitoreoAgenteCallback ........ Callback para IE1-IE4
 │       ├── Herramientas:
 │       │   ├── consultar_tarifa()
@@ -51,7 +51,8 @@
 ├── 📁 CARPETAS GENERADAS (Automático)
 │   ├── logs/ .............................. Archivos de monitoreo
 │   │   ├── agent_logs.jsonl .............. Datos de ejecución (IE1-IE4)
-│   │   ├── agente_metro.log .............. Log general
+│   │   ├── logs/agent_logs.jsonl .......... Logs JSONL de ejecución
+│   │   ├── agente_metro.log .............. Log general (texto)
 │   │   ├── agente_metro_errors.log ....... Solo errores
 │   │   └── viaje_*.eml ................... Correos guardados
 │   │
@@ -120,7 +121,7 @@
 1️⃣  USUARIO
     ↓ (Escribe consulta)
     
-2️⃣  AGENTE (agente_metro.py)
+2️⃣  AGENTE (backend/agent.py)
     ├─ Valida datos sensibles (Guardrail - IE6)
     ├─ Procesa consulta con LLM
     ├─ Selecciona herramienta apropiada
@@ -232,7 +233,7 @@ Limpiar:
   ✓ Guardrails de seguridad (IE6)
 
 ✓ Testing:
-  - Ejecutar: python agente_metro.py
+  - Ejecutar: python backend/agent.py
   - Probar al menos 3 consultas diferentes
   - Abrir dashboard en http://localhost:8501
   - Verificar que logs/agent_logs.jsonl se llena

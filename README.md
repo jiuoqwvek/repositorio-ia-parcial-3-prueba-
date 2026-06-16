@@ -91,7 +91,7 @@ Visualizaciones en tiempo real:
 └────────────────┬────────────────────────────┘
                  │
 ┌─────────────────────────────────────────────┐
-│    AGENTE INTELIGENTE (agente_metro.py)    │
+│    AGENTE INTELIGENTE (backend/agent.py)    │
 ├─────────────────────────────────────────────┤
 │ - Herramientas (consultar_*, enviar_*, etc) │
 │ - Memoria Compuesta (corto/largo plazo)     │
@@ -216,7 +216,7 @@ Deberías ver dos contenedores:
 #### Terminal 1: Agente Inteligente
 
 ```bash
-python agente_metro.py
+python backend/agent.py
 ```
 
 El agente inicia en modo interactivo. Ejemplos de consultas:
@@ -335,7 +335,7 @@ docker-compose down
 
 ```
 EVA3_Ing_Sol_IA/
-├── agente_metro.py              # Core del agente (herramientas, memoria, callbacks)
+├── backend/agent.py              # Core del agente (herramientas, memoria, callbacks)
 ├── dashboard.py                 # Dashboard en Streamlit
 ├── requirements.txt             # Dependencias Python
 ├── docker-compose.yml           # Orquestación de servicios
@@ -459,7 +459,7 @@ docker-compose up --build
 **Solución:**
 ```bash
 # Es normal en primera ejecución. Se crea automáticamente:
-python agente_metro.py
+    python backend/agent.py
 
 # Verifica que se cree:
 ls -la vector_db/
@@ -468,7 +468,7 @@ ls -la vector_db/
 ### Problema: Dashboard muestra "En espera de datos"
 
 **Solución:**
-1. Asegúrate de que `agente_metro.py` está ejecutándose
+1. Asegúrate de que `backend/agent.py` está ejecutándose
 2. Ejecuta al menos una consulta en el agente
 3. Verifica que `logs/agent_logs.jsonl` existe y tiene contenido
 4. Recarga el dashboard (F5)

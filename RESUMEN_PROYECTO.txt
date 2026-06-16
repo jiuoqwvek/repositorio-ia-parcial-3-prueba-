@@ -12,7 +12,7 @@
 ✅ 14 ARCHIVOS LISTOS PARA USAR:
 
    🐍 CÓDIGO PYTHON (4 archivos)
-   ├─ agente_metro.py .................. Core del agente (750 líneas)
+   ├─ backend/agent.py .................. Core del agente (750 líneas)
    ├─ dashboard.py ..................... Dashboard Streamlit (500 líneas)
    ├─ config_logging.py ............... Sistema de logging (180 líneas)
    └─ ejemplos.py ..................... Ejemplos y testing (320 líneas)
@@ -159,7 +159,7 @@ Agente:  ⚠️ He detectado información personal. No almaceno datos sensibles.
 ═══════════════════════════════════════════════════════════════════════════════
 
 EVA3_Ing_Sol_IA/
-├── agente_metro.py
+   ├── backend/agent.py
 ├── dashboard.py
 ├── config_logging.py
 ├── ejemplos.py
@@ -179,8 +179,8 @@ EVA3_Ing_Sol_IA/
 └── CARPETAS GENERADAS (automático):
     ├── logs/
     │   ├── agent_logs.jsonl    (Datos de monitoreo)
-    │   ├── agente_metro.log    (Log general)
-    │   └── agente_metro_errors.log
+    │   ├── agent_logs.jsonl    (Logs JSONL de ejecución)
+    │   └── agente_metro.log (archivo de logging tradicional)
     ├── vector_db/
     │   ├── index.faiss
     │   └── index.pkl
@@ -225,7 +225,7 @@ Para ayuda:
   1. Lee README.md (documentación exhaustiva)
   2. Consulta GUÍA_RÁPIDA.md (inicio rápido)
   3. Ejecuta: python ejemplos.py verificar
-  4. Revisa: logs/agente_metro.log
+  4. Revisa: logs/agent_logs.jsonl (JSONL principal) y logs/agente_metro.log
 
 Problemas comunes:
   - OPENAI_API_KEY no encontrada → Edita .env

@@ -4,7 +4,7 @@
 
 ### ✅ Archivos Core del Código
 
-- [x] **agente_metro.py** (23 KB)
+- [x] **backend/agent.py** (23 KB)
   - [x] MonitoreoAgenteCallback (BaseCallbackHandler)
   - [x] 5 Herramientas implementadas
   - [x] Memoria Compuesta (corto + largo plazo)
@@ -144,32 +144,32 @@
 
 | Herramienta | Archivo | Línea | Estado |
 |-------------|---------|-------|--------|
-| consultar_tarifa(hora) | agente_metro.py | 200-220 | ✅ |
-| consultar_ruta(origen, destino) | agente_metro.py | 223-280 | ✅ |
-| consultar_impedimentos() | agente_metro.py | 283-320 | ✅ ⭐ NUEVA |
-| enviar_correo(destinatario, asunto, cuerpo) | agente_metro.py | 323-380 | ✅ |
-| razonar_viaje(pregunta) | agente_metro.py | 383-410 | ✅ |
+| consultar_tarifa(hora) | backend/agent.py | 200-220 | ✅ |
+| consultar_ruta(origen, destino) | backend/agent.py | 223-280 | ✅ |
+| consultar_impedimentos() | backend/agent.py | 283-320 | ✅ ⭐ NUEVA |
+| enviar_correo(destinatario, asunto, cuerpo) | backend/agent.py | 323-380 | ✅ |
+| razonar_viaje(pregunta) | backend/agent.py | 383-410 | ✅ |
 
 ### ✅ Memoria Compuesta
 
 | Componente | Archivo | Línea | Estado |
 |------------|---------|-------|--------|
-| ConversationBufferMemory | agente_metro.py | 420-430 | ✅ |
-| Vector DB (FAISS + Embeddings) | agente_metro.py | 440-480 | ✅ |
-| MemoriaCompuesta class | agente_metro.py | 414-482 | ✅ |
-| Agregar a largo plazo | agente_metro.py | 475-482 | ✅ |
+| ConversationBufferMemory | backend/agent.py | 420-430 | ✅ |
+| Vector DB (FAISS + Embeddings) | backend/agent.py | 440-480 | ✅ |
+| MemoriaCompuesta class | backend/agent.py | 414-482 | ✅ |
+| Agregar a largo plazo | backend/agent.py | 475-482 | ✅ |
 
 ### ✅ Observabilidad y Trazabilidad (IE1-IE4)
 
 | Requisito | Archivo | Línea | Estado |
 |-----------|---------|-------|--------|
-| IE1: BaseCallbackHandler | agente_metro.py | 90-175 | ✅ |
-| IE2: Timestamp registrado | agente_metro.py | 120 | ✅ |
-| IE3: Nombre herramienta | agente_metro.py | 121 | ✅ |
-| IE4: Latencia + RAM + Errores | agente_metro.py | 122-124, 160-162 | ✅ |
-| Archivo logs/agent_logs.jsonl | agente_metro.py | 137-140, 163-166 | ✅ |
-| JSON format | agente_metro.py | 129-136 | ✅ |
-| psutil para RAM | agente_metro.py | 110-112 | ✅ |
+| IE1: BaseCallbackHandler | backend/agent.py | 90-175 | ✅ |
+| IE2: Timestamp registrado | backend/agent.py | 120 | ✅ |
+| IE3: Nombre herramienta | backend/agent.py | 121 | ✅ |
+| IE4: Latencia + RAM + Errores | backend/agent.py | 122-124, 160-162 | ✅ |
+| Archivo logs/agent_logs.jsonl | backend/agent.py | 137-140, 163-166 | ✅ |
+| JSON format | backend/agent.py | 129-136 | ✅ |
+| psutil para RAM | backend/agent.py | 110-112 | ✅ |
 
 ### ✅ Dashboard de Monitoreo (IE5)
 
@@ -190,14 +190,14 @@
 
 | Guardrail | Archivo | Línea | Estado |
 |-----------|---------|-------|--------|
-| System Prompt con reglas | agente_metro.py | 525-555 | ✅ |
-| NO solicitar RUT | agente_metro.py | 543 | ✅ |
-| NO solicitar contraseña | agente_metro.py | 543 | ✅ |
-| NO solicitar tarjeta crédito | agente_metro.py | 543 | ✅ |
-| Detectar datos sensibles | agente_metro.py | 690-705 | ✅ |
-| Advertencia de privacidad | agente_metro.py | 706-715 | ✅ |
-| Respuestas respetuosas | agente_metro.py | 551 | ✅ |
-| Inclusivas | agente_metro.py | 551 | ✅ |
+| System Prompt con reglas | backend/agent.py | 525-555 | ✅ |
+| NO solicitar RUT | backend/agent.py | 543 | ✅ |
+| NO solicitar contraseña | backend/agent.py | 543 | ✅ |
+| NO solicitar tarjeta crédito | backend/agent.py | 543 | ✅ |
+| Detectar datos sensibles | backend/agent.py | 690-705 | ✅ |
+| Advertencia de privacidad | backend/agent.py | 706-715 | ✅ |
+| Respuestas respetuosas | backend/agent.py | 551 | ✅ |
+| Inclusivas | backend/agent.py | 551 | ✅ |
 
 ---
 
@@ -206,7 +206,7 @@
 ### Líneas de Código
 
 ```
-agente_metro.py ............ 750+ líneas
+backend/agent.py ............ 750+ líneas
 dashboard.py ............... 500+ líneas
 config_logging.py .......... 180+ líneas
 ejemplos.py ................ 320+ líneas
@@ -227,8 +227,8 @@ Total documentación ........ ~1,150 líneas
 
 ```
 logs/agent_logs.jsonl ....... Se crea automáticamente
-logs/agente_metro.log ....... Se crea automáticamente
-logs/agente_metro_errors.log  Se crea automáticamente
+logs/agent_logs.txt .......... Se crea automáticamente (texto)
+logs/agent_errors.log ........ Se crea automáticamente (errores)
 vector_db/index.faiss ....... Se crea automáticamente
 ```
 
@@ -251,7 +251,7 @@ python ejemplos.py pruebas
 ### Paso 3: Ejecución Manual
 ```bash
 # Terminal 1: Agente
-python agente_metro.py
+python backend/agent.py
 
 # Hacer 5+ consultas para generar datos
 
@@ -285,7 +285,7 @@ git push
 **Ubicación**: `/mnt/c/Users/rena4/Downloads/EVA3_Ing_Sol_IA/`
 
 **Archivos principales entregados**:
-1. ✅ agente_metro.py (Core con herramientas + monitoreo)
+1. ✅ backend/agent.py (Core con herramientas + monitoreo)
 2. ✅ dashboard.py (Dashboard Streamlit con gráficos)
 3. ✅ requirements.txt (Todas las dependencias)
 4. ✅ docker-compose.yml (Orquestación completa)
@@ -309,7 +309,7 @@ git push
 
 ## 💡 Próximos Pasos (Opcional)
 
-- [ ] Ejecutar el agente con `python agente_metro.py`
+ - [ ] Ejecutar el agente con `python backend/agent.py`
 - [ ] Hacer varias consultas para generar datos
 - [ ] Ver dashboard en `http://localhost:8501`
 - [ ] Revisar logs en `logs/agent_logs.jsonl`
